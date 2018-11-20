@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	     xmlns:aop="http://www.springframework.org/schema/aop"
+	     xmlns:tx="http://www.springframework.org/schema/tx"
+	     xmlns:context="http://www.springframework.org/schema/context"
+	     xsi:schemaLocation="
+	     http://www.springframework.org/schema/beans
+	      http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+           http://www.springframework.org/schema/aop
+            http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
+           http://www.springframework.org/schema/tx
+            http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+            http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+	 <!-- 当前Spring支持注解 -->
+	 <context:annotation-config/>
+	 <!-- 设置当前项目的根包 -->
+	 <context:component-scan base-package="com.sensor">
+	 <context:exclude-filter type="annotation"
+            expression="org.springframework.stereotype.Controller" />
+	 </context:component-scan>
+	 <tx:annotation-driven transaction-manager="transactionManager" />  
+	 
+	<!--  <context:property-placeholder location="classpath:jdbc.properties" />  
+	 配置数据源 c3p0  
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">  
+        <property name="driverClass" value="${dataSource_1.driverClassName}"></property>  
+        <property name="user" value="${dataSource_1.username}"></property>  
+        <property name="password" value="${dataSource_1.password}"></property>  
+        <property name="jdbcUrl" value="${dataSource_1.url}"></property>  
+          
+        <property name="initialPoolSize" value="4"></property>  
+        <property name="maxPoolSize" value="3"></property>  
+        <property name="acquireIncrement" value="15"></property>  
+        <property name="maxStatements" value="3"></property>  
+        <property name="maxStatementsPerConnection" value="15"></property>  
+        <property name="maxIdleTime" value="6000"></property>  
+    </bean>   -->
+	<!-- 配置数据源 -->
+	<bean id="MySqlDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+		<property name="url" value="jdbc:mysql://localhost:3306/test?useUnicode=true&amp;characterEncoding=utf-8">
+		</property>
+		<property name="username" value="admin"></property>
+		<property name="password" value="admin"></property>
+	</bean>
+	<!-- 配置数据源结束 -->
+	
+	<!-- 配置session工厂 -->
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource" ref="MySqlDataSource"/>
+		<property name="hibernateProperties">
+			<!-- <props>
+				<prop key="hibernate.dialect">
+					org.hibernate.dialect.MySQLDialect
+				</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.format_sql">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+			</props> -->
+			<value>
+                hibernate.dialect=org.hibernate.dialect.MySQLDialect
+                hibernate.show_sql=false
+                hbm2ddl.auto=update
+            </value>
+		</property>
+		<property name="packagesToScan" value="com.sensor.dev.*"/>
+	</bean>
+	<!-- 配置事务传播属性,注意需要有事务管理(transaction-manager) : 其实就是事务(方法)发生的时间和要发生的故事-->  
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">  
+        <tx:attributes>  
+            <tx:method name="add*" propagation="REQUIRED"/>  
+            <tx:method name="save*" propagation="REQUIRED"/>  
+            <tx:method name="insert*" propagation="REQUIRED"/>  
+            <tx:method name="delete*" propagation="REQUIRED"/>  
+            <tx:method name="update*" propagation="REQUIRED"/>  
+            <tx:method name="find*" propagation="REQUIRED" read-only="true"/>  
+            <tx:method name="load*" propagation="REQUIRED" read-only="true"/>  
+            <tx:method name="query*" propagation="REQUIRED" read-only="true"/>  
+            <tx:method name="*" propagation="REQUIRED"/>  
+        </tx:attributes>  
+    </tx:advice>  
+	<!-- 事务管理配置  -->
+	<bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">  
+		<property name="sessionFactory" ref="sessionFactory" />  
+	</bean>
+</beans>
